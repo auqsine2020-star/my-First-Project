@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Danger Zone</title>
+<style>
+  :root{
+    --bg:#0e0e10;
+    --panel:#151517;
+    --border:#3a2323;
+    --red:#e6423c;
+    --red-dim:#7a2a26;
+    --text:#e8e6e3;
+    --muted:#9a9793;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin:0; height:100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .card{
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 48px 40px;
+    max-width: 380px;
+    text-align:center;
+    background: var(--panel);
+    box-shadow: 0 0 0 1px rgba(230,66,60,0.08);
+  }
+  .card h1{
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 8px;
+    letter-spacing: 0.2px;
+  }
+  .card p{
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin: 0 0 28px;
+    line-height: 1.5;
+  }
+  .crash-btn{
+    border: 2px solid var(--red);
+    background: transparent;
+    color: var(--red);
+    padding: 14px 28px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .crash-btn:hover{
+    background: var(--red);
+    color: #111;
+  }
+
+  /* fake crash screen */
+  #crash-screen{
+    display:none;
+    position: fixed;
+    inset: 0;
+    background: #0018c6;
+    color: #fff;
+    font-family: "Consolas", "Courier New", monospace;
+    padding: 8vh 10vw;
+    z-index: 999;
+  }
+  #crash-screen .face{ font-size: 3.5rem; margin-bottom: 24px; }
+  #crash-screen h2{ font-size: 1.6rem; font-weight: 400; margin: 0 0 20px; }
+  #crash-screen p{ font-size: 1rem; line-height: 1.6; max-width: 640px; }
+  #crash-screen .pct{ margin-top: 40px; font-size: 1rem; }
+  #crash-screen .note{ margin-top: 60px; font-size: 0.85rem; color: #b9c2ff; }
+
+  .glitch{ animation: glitch 0.15s steps(2) 4; }
+  @keyframes glitch{
+    0%{ transform: translate(0,0); }
+    25%{ transform: translate(-2px,1px); }
+    50%{ transform: translate(2px,-1px); }
+    75%{ transform: translate(-1px,-1px); }
+    100%{ transform: translate(0,0); }
+  }
+</style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>System Utility</h1>
+    <p>This button is just a harmless joke — clicking it shows a fake "crash" screen for a few seconds. It cannot actually affect your computer.</p>
+    <button class="crash-btn" onclick="tryCrash()">Crash this PC</button>
+  </div>
+
+  <div id="crash-screen">
+    <div class="face">:(</div>
+    <h2>Your PC ran into a problem and needs to restart.</h2>
+    <p>We're just collecting some error info, and then we'll restart for you. (This is a prank page — nothing is actually happening to your computer.)</p>
+    <div class="pct" id="pct">0% complete</div>
+    <div class="note">If you'd like to know more, you can search online later for this joke's error code: JUST_A_PRANK_BRO</div>
+  </div>
+
+<script>
+function tryCrash(){
+  const ok = confirm("Are you sure you want to crash this pc?");
+  if (ok){
+    document.body.classList.add('glitch');
+    setTimeout(() => {
+      document.getElementById('crash-screen').style.display = 'block';
+      let pct = 0;
+      const el = document.getElementById('pct');
+      const timer = setInterval(() => {
+        pct += Math.floor(Math.random() * 9) + 2;
+        if (pct >= 100){
+          pct = 100;
+          clearInterval(timer);
+        }
+        el.textContent = pct + "% complete";
+      }, 180);
+    }, 150);
+  }
+}
+</script>
+
+</body>
+</html>
