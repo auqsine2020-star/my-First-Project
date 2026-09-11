@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>System Utility</title>
+<style>
+  :root{
+    --bg: #0d1117;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --danger: #f85149;
+    --btn-bg: #21262d;
+  }
+  html,body{
+    margin:0; padding:0; height:100%; width:100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+    overflow:hidden;
+    cursor: default;
+  }
+  .frame{
+    box-sizing:border-box;
+    height:100vh; width:100vw;
+    border: 6px solid var(--border);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+  }
+  .panel{
+    text-align:center;
+    padding: 40px 50px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #161b22;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+  .panel h1{
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 24px 0;
+  }
+  #crashBtn{
+    background: var(--danger);
+    color: white;
+    border: none;
+    padding: 12px 28px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  #crashBtn:hover{ filter: brightness(1.1); }
+
+  /* Fake confirm dialog */
+  .overlay{
+    position:fixed; inset:0;
+    background: rgba(0,0,0,0.6);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index: 50;
+  }
+  .dialog{
+    background:#161b22;
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding: 24px 28px;
+    max-width: 320px;
+    text-align:center;
+  }
+  .dialog p{ margin: 0 0 20px 0; font-size:14px; }
+  .dialog-btns{ display:flex; gap:10px; justify-content:center; }
+  .dialog-btns button{
+    padding: 8px 18px;
+    border-radius:6px;
+    border:1px solid var(--border);
+    font-weight:600;
+    cursor:pointer;
+    font-size:13px;
+  }
+  #yesBtn{ background: var(--danger); color:white; border:none; }
+  #noBtn{ background: var(--btn-bg); color: var(--text); }
+
+  /* Fake frozen screen */
+  #frozenOverlay{
+    position:fixed; inset:0;
+    z-index: 100;
+    display:none;
+    background: var(--bg);
+  }
+  #frozenOverlay img{
+    width:100%; height:100%; object-fit: cover;
+    display:block;
+  }
+  #fakeCursor{
+    position:fixed;
+    z-index: 200;
+    width: 22px; height: 22px;
+    pointer-events:none;
+    display:none;
+  }
+  .titlebar{
+    position:fixed; top:0; left:0; right:0;
+    font-size:11px; color:#8b949e;
+    padding:4px 10px;
+    background:#010409;
+    border-bottom:1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<div class="titlebar" id="titlebar">GitHub — Pull Requests</div>
+
+<div class="frame">
+  <div class="panel">
+    <h1>System Utility</h1>
+    <button id="crashBtn">Crash This PC</button>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="dialog">
+    <p>Are you sure you want to crash this pc?</p>
+    <div class="dialog-btns">
+      <button id="yesBtn">Yes, crash it</button>
+      <button id="noBtn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="frozenOverlay"></div>
+<div id="fakeCursor">
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4 2 L4 20 L9 15.5 L12.5 22 L15 20.5 L11.5 14 L18 14 Z" fill="white" stroke="black" stroke-width="1"/>
+  </svg>
+</div>
+
+<script>
+const crashBtn = document.getElementById('crashBtn');
+const overlay = document.getElementById('overlay');
+const yesBtn = document.getElementById('yesBtn');
+const noBtn = document.getElementById('noBtn');
+const frozenOverlay = document.getElementById('frozenOverlay');
+const fakeCursor = document.getElementById('fakeCursor');
+const titlebar = document.getElementById('titlebar');
+
+let lastX = window.innerWidth / 2;
+let lastY = window.innerHeight / 2;
+
+document.addEventListener('mousemove', (e) => {
+  lastX = e.clientX;
+  lastY = e.clientY;
+});
+
+crashBtn.addEventListener('click', () => {
+  overlay.style.display = 'flex';
+});
+
+noBtn.addEventListener('click', () => {
+  overlay.style.display = 'none';
+});
+
+yesBtn.addEventListener('click', () => {
+  overlay.style.display = 'none';
+  doFakeCrash();
+});
+
+function doFakeCrash(){
+  // Freeze the real cursor by hiding it everywhere and drawing a fake one at last position
+  document.documentElement.style.cursor = 'none';
+  fakeCursor.style.left = (lastX - 2) + 'px';
+  fakeCursor.style.top = (lastY - 2) + 'px';
+  fakeCursor.style.display = 'block';
+
+  // Simulate a "not responding" GitHub tab / window
+  titlebar.textContent = 'GitHub — (Not Responding)';
+  document.title = 'GitHub (Not Responding)';
+
+  // Show frozen overlay that ignores all input
+  frozenOverlay.style.display = 'block';
+  frozenOverlay.style.pointerEvents = 'all';
+
+  // Disable scrolling/keys to sell the "freeze"
+  const block = (e) => { e.preventDefault(); e.stopPropagation(); };
+  ['click','mousedown','mouseup','keydown','wheel','contextmenu'].forEach(evt => {
+    document.addEventListener(evt, block, true);
+  });
+
+  // subtle flicker after a few seconds to hint it's "stuck", then reveal it's a prank
+  setTimeout(() => {
+    frozenOverlay.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;color:#c9d1d9;font-family:sans-serif;">' +
+      '<div style="font-size:40px;margin-bottom:10px;">😂</div>' +
+      '<div style="font-size:16px;">Relax — it was just a prank!</div>' +
+      '</div>';
+    fakeCursor.style.display = 'none';
+    document.documentElement.style.cursor = 'default';
+    document.title = 'System Utility';
+    ['click','mousedown','mouseup','keydown','wheel','contextmenu'].forEach(evt => {
+      document.removeEventListener(evt, block, true);
+    });
+    frozenOverlay.style.pointerEvents = 'none';
+    setTimeout(() => { frozenOverlay.style.display = 'none'; }, 1500);
+  }, 4000);
+}
+</script>
+
+</body>
+</html>
